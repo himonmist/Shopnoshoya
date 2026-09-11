@@ -3,13 +3,14 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import slugify from "slugify";
+import { withJsonErrors } from "@/lib/apiError";
 
-export async function GET() {
+export const GET = withJsonErrors(async () => {
   const posts = await prisma.blogPost.findMany({ orderBy: { publishedAt: "desc" } });
   return NextResponse.json(posts);
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withJsonErrors(async (req: NextRequest) => {
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   delete body.id;
@@ -33,4 +34,4 @@ export async function POST(req: NextRequest) {
     },
   });
   return NextResponse.json(post);
-}
+});

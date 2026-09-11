@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import slugify from "slugify";
+import { withJsonErrors } from "@/lib/apiError";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export const PUT = withJsonErrors(async (req: NextRequest, { params }: { params: { id: string } }) => {
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
@@ -23,9 +24,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const post = await prisma.blogPost.update({ where: { id: params.id }, data });
   return NextResponse.json(post);
-}
+});
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export const DELETE = withJsonErrors(async (_req: NextRequest, { params }: { params: { id: string } }) => {
   await prisma.blogPost.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
-}
+});

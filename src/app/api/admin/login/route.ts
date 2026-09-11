@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
+import { withJsonErrors } from "@/lib/apiError";
 
-export async function POST(req: NextRequest) {
+export const POST = withJsonErrors(async (req: NextRequest) => {
   const body = await req.json().catch(() => null);
   const email = String(body?.email || "").trim().toLowerCase();
   const password = String(body?.password || "");
@@ -25,4 +26,4 @@ export async function POST(req: NextRequest) {
   await setSessionCookie(token);
 
   return NextResponse.json({ ok: true });
-}
+});
