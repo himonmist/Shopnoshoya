@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getTips } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export default async function HealthyLifestylePage() {
   const [s, tips] = await Promise.all([getSettings(), getTips("healthy-lifestyle")]);
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/healthy-lifestyle" orgName={s.orgName} />
       <header className="page-header">
         <div className="eyebrow">স্বাস্থ্যকর জীবনযাপন</div>

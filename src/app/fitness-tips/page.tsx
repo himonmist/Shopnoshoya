@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getTips } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export default async function FitnessTipsPage() {
   const [s, tips] = await Promise.all([getSettings(), getTips("fitness-tips")]);
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/fitness-tips" orgName={s.orgName} />
       <header className="container" style={{ padding: "60px 40px 40px", display: "grid", gridTemplateColumns: "minmax(280px,1.1fr) minmax(240px,0.9fr)", gap: 32, alignItems: "center" }}>
         <div>

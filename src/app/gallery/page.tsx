@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getGallery } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export default async function GalleryPage() {
   const [s, images] = await Promise.all([getSettings(), getGallery()]);
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/gallery" orgName={s.orgName} />
       <header className="page-header">
         <div className="eyebrow">গ্যালারি</div>

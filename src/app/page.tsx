@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getActivities } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/" orgName={s.orgName} />
 
       <header className="container" style={{ position: "relative", padding: "70px 40px 40px", overflow: "hidden" }}>

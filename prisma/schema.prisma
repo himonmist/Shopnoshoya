@@ -45,6 +45,10 @@ model SiteSettings {
   contactEmail      String   @default("")
   exerciseTimeNote  String   @default("প্রতিদিন সকাল, স্বপ্ননগর খোলা মাঠ")
   footerTagline     String   @default("স্বপ্ননগরের সর্বপ্রথম ও ঐতিহ্যবাহী ব্যায়াম সংগঠন।")
+  popupEnabled      Boolean  @default(false)
+  popupImageUrl     String   @default("")
+  popupLinkUrl      String   @default("")
+  popupTitle        String   @default("")
   updatedAt         DateTime @updatedAt
 }
 

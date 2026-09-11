@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getBlogPost } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/blog" orgName={s.orgName} />
       <header className="container" style={{ padding: "50px 40px 30px", maxWidth: 820 }}>
         {post.tag && <span className="badge-orange">{post.tag}</span>}

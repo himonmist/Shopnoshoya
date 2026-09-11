@@ -28,6 +28,10 @@ export const defaultSettings = {
   contactEmail: "",
   exerciseTimeNote: "প্রতিদিন সকাল, স্বপ্ননগর খোলা মাঠ",
   footerTagline: "স্বপ্ননগরের সর্বপ্রথম ও ঐতিহ্যবাহী ব্যায়াম সংগঠন।",
+  popupEnabled: false,
+  popupImageUrl: "",
+  popupLinkUrl: "",
+  popupTitle: "",
 };
 
 export type Settings = typeof defaultSettings;

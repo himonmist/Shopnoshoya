@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getActivities } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export default async function ActivitiesPage() {
   const [s, activities] = await Promise.all([getSettings(), getActivities()]);
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/activities" orgName={s.orgName} />
       <header className="page-header">
         <div className="eyebrow">কার্যক্রম</div>

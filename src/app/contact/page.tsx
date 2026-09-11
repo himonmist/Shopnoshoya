@@ -1,6 +1,7 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ContactForm from "@/components/ContactForm";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ export default async function ContactPage() {
   const s = await getSettings();
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/contact" orgName={s.orgName} />
       <header className="page-header">
         <div className="eyebrow">যোগাযোগ</div>

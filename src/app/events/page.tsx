@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import PopupAnnouncement from "@/components/PopupAnnouncement";
 import { getSettings, getEvents } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function EventsPage() {
 
   return (
     <>
+      <PopupAnnouncement enabled={s.popupEnabled} imageUrl={s.popupImageUrl} linkUrl={s.popupLinkUrl} title={s.popupTitle} />
       <Nav active="/events" orgName={s.orgName} />
       <header className="page-header">
         <div className="eyebrow">ইভেন্ট</div>

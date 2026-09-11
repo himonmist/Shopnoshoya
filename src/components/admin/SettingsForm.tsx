@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import ImageField from "./ImageField";
 
-const fieldGroups: { title: string; fields: { key: string; label: string; textarea?: boolean }[] }[] = [
+const fieldGroups: {
+  title: string;
+  fields: { key: string; label: string; textarea?: boolean; type?: "image" | "checkbox" }[];
+}[] = [
   {
     title: "সংগঠনের নাম",
     fields: [
@@ -54,6 +58,15 @@ const fieldGroups: { title: string; fields: { key: string; label: string; textar
     title: "ফুটার",
     fields: [{ key: "footerTagline", label: "ফুটার ট্যাগলাইন" }],
   },
+  {
+    title: "পপ-আপ বিজ্ঞপ্তি",
+    fields: [
+      { key: "popupEnabled", label: "পপ-আপ চালু আছে?", type: "checkbox" },
+      { key: "popupImageUrl", label: "পপ-আপ ছবি (যেমন ইভেন্ট নোটিস)", type: "image" },
+      { key: "popupLinkUrl", label: "ছবিতে ক্লিক করলে যে পাতায় যাবে (ঐচ্ছিক, যেমন /events)" },
+      { key: "popupTitle", label: "ছবির শিরোনাম (ঐচ্ছিক, বিকল্প টেক্সট)" },
+    ],
+  },
 ];
 
 export default function SettingsForm({ initial }: { initial: Record<string, any> }) {
@@ -61,7 +74,7 @@ export default function SettingsForm({ initial }: { initial: Record<string, any>
   const [status, setStatus] = useState<"idle" | "saving" | "ok" | "err">("idle");
   const [errMsg, setErrMsg] = useState("");
 
-  function update(key: string, val: string) {
+  function update(key: string, val: string | boolean) {
     setValues((v) => ({ ...v, [key]: val }));
   }
 
@@ -92,7 +105,15 @@ export default function SettingsForm({ initial }: { initial: Record<string, any>
             {group.fields.map((f) => (
               <div key={f.key}>
                 <label className="lbl">{f.label}</label>
-                {f.textarea ? (
+                {f.type === "checkbox" ? (
+                  <input
+                    type="checkbox"
+                    checked={!!values[f.key]}
+                    onChange={(e) => update(f.key, e.target.checked)}
+                  />
+                ) : f.type === "image" ? (
+                  <ImageField value={values[f.key] || ""} onChange={(url) => update(f.key, url)} />
+                ) : f.textarea ? (
                   <textarea className="input" rows={3} value={values[f.key] || ""} onChange={(e) => update(f.key, e.target.value)} />
                 ) : (
                   <input className="input" value={values[f.key] || ""} onChange={(e) => update(f.key, e.target.value)} />
