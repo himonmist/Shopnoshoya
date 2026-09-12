@@ -52,6 +52,15 @@ model SiteSettings {
   updatedAt         DateTime @updatedAt
 }
 
+// Fallback image storage used when Vercel Blob isn't connected — served via
+// /api/images/[id]. Small/moderate images only (see MAX_DB_IMAGE_BYTES).
+model ImageAsset {
+  id        String   @id @default(cuid())
+  data      String
+  mimeType  String
+  createdAt DateTime @default(now())
+}
+
 model Activity {
   id          String   @id @default(cuid())
   category    String

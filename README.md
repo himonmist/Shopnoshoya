@@ -6,7 +6,7 @@ Official website for **স্বপ্নছোঁয়া**, a morning-exercis
 
 - **Next.js 14** (App Router, TypeScript) — public site + admin panel in one app
 - **PostgreSQL** via **Prisma ORM** — all content lives in the database
-- **Vercel Blob** — image uploads from the admin panel
+- **Image uploads** — stored directly in Postgres and served via `/api/images/[id]` by default (zero extra setup); automatically switches to **Vercel Blob** once `BLOB_READ_WRITE_TOKEN` is configured, for better performance at scale and no ~3MB per-image size cap
 - Custom lightweight session auth (signed JWT cookie, `jose` + `bcryptjs`) — no third-party auth service required
 
 ## What's editable from the admin panel (`/admin`)
@@ -39,7 +39,7 @@ npm run dev
 |---|---|
 | `DATABASE_URL` | Your PostgreSQL connection string (see step 2 below) |
 | `AUTH_SECRET` | Any long random string, e.g. `openssl rand -base64 32` |
-| `BLOB_READ_WRITE_TOKEN` | From Vercel Blob storage (see step 4) — optional locally, required for the admin panel's image upload button in production |
+| `BLOB_READ_WRITE_TOKEN` | Optional. Without it, uploads are stored in Postgres instead (works out of the box, capped at ~3MB per image). Set this (see step 4) for larger images and better performance |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credentials for the first admin account created by `npm run db:seed` |
 
 ## 2. Create a free PostgreSQL database
@@ -72,7 +72,7 @@ git push -u origin main
    - `DATABASE_URL` — from step 2
    - `AUTH_SECRET` — a long random string
    - `ADMIN_EMAIL`, `ADMIN_PASSWORD` — the account you'll log into `/admin` with
-4. In the Vercel project, go to **Storage → Create Database → Blob**, connect it to the project. This automatically adds `BLOB_READ_WRITE_TOKEN` for you (needed so the admin panel can upload images).
+4. (Optional) In the Vercel project, go to **Storage → Create Database → Blob**, connect it to the project. This automatically adds `BLOB_READ_WRITE_TOKEN` for you. Skip this and image uploads still work — they're just stored in Postgres instead, capped at ~3MB per image.
 5. Deploy.
 6. After the first successful deploy, run the database migration + seed **once** from your local machine (pointed at the production `DATABASE_URL`):
 
