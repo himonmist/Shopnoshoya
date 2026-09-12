@@ -14,6 +14,7 @@ export const PUT = withJsonErrors(async (req: NextRequest, { params }: { params:
     content: body.content,
     imageUrl: body.imageUrl,
     tag: body.tag,
+    authorName: body.authorName,
     published: body.published,
   };
   if (body.publishedAt) data.publishedAt = new Date(body.publishedAt);

@@ -4,10 +4,10 @@ Official website for **স্বপ্নছোঁয়া**, a morning-exercis
 
 ## Stack
 
-- **Next.js 14** (App Router, TypeScript) — public site + admin panel in one app
+- **Next.js 15** (App Router, TypeScript) — public site + admin panel in one app
 - **PostgreSQL** via **Prisma ORM** — all content lives in the database
 - **Image uploads** — stored directly in Postgres and served via `/api/images/[id]` by default (zero extra setup); automatically switches to **Vercel Blob** once `BLOB_READ_WRITE_TOKEN` is configured, for better performance at scale and no ~3MB per-image size cap
-- Custom lightweight session auth (signed JWT cookie, `jose` + `bcryptjs`) — no third-party auth service required
+- Custom lightweight session auth (signed JWT cookie, `jose` + `bcryptjs`) — no third-party auth service required, separate cookie + token type for admin vs. member sessions (see Security notes below)
 
 ## What's editable from the admin panel (`/admin`)
 
@@ -22,6 +22,20 @@ Official website for **স্বপ্নছোঁয়া**, a morning-exercis
 | বার্তা (Messages) | View contact-form messages and membership applications submitted by visitors |
 
 All public pages read directly from the database, so admin changes appear on the live site immediately — no rebuild needed.
+
+## Member accounts (`/login`, `/member/dashboard`, `/members`)
+
+1. A visitor signs up on `/login` (name, building/flat, phone, password) — creates a **pending** member record.
+2. Admin approves or rejects the application in `/admin` → বার্তা.
+3. Once approved, the member logs in at `/login` and lands on `/member/dashboard`, where they can:
+   - Edit their own profile: photo, name, mobile, email, profession, building, hobby, about-you, birthday (day + month only — no year is ever collected or stored), and a "motive word" for স্বপ্নছোঁয়া.
+   - Submit blog articles. Submissions are unpublished by default; an admin must approve them (toggle "প্রকাশিত?" in `/admin` → ব্লগ) before they appear on the public `/blog`. A member can edit or delete their own submission while it's still pending, but not after it's published (further changes go through the admin).
+4. `/members` is a public directory listing every **approved** member's public profile fields (photo, name, profession, building, hobby, about-you, birthday, motive word). Phone, email, and password are never included in this listing or in any response sent to the browser — see `src/lib/members.ts`'s `toPublicMember` (an explicit allowlist, tested in `src/lib/members.test.ts`).
+
+## Security notes
+
+- Admin and member sessions use separate cookies (`shopnoshoya_admin_session` / `shopnoshoya_member_session`) **and** separate token `typ` claims, even though both are signed with the same `AUTH_SECRET`. This is enforced in both `middleware.ts` and each side's own token verifier (`src/lib/auth.ts`, `src/lib/memberAuth.ts`), so a member's valid session token can never be replayed as an admin cookie (or vice versa) — verified with an end-to-end local test before this shipped.
+- Run `npm test` before any deploy — it covers password hashing, session token round-tripping, and this exact cross-role isolation.
 
 ## 1. Local setup
 

@@ -25,22 +25,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "ADMIN_EMAIL / ADMIN_PASSWORD not configured" }, { status: 500 });
   }
 
+  // Best-effort: apply every statement and keep going past failures (e.g. a
+  // UNIQUE constraint that can't be added yet because of pre-existing
+  // duplicate data) so one problem statement never blocks the rest of an
+  // incremental migration. Every failure is reported back, never hidden.
   const schemaResults: string[] = [];
   for (const [i, stmt] of SCHEMA_STATEMENTS.entries()) {
     try {
       await prisma.$executeRawUnsafe(stmt);
       schemaResults.push(`[${i + 1}] ok`);
     } catch (err: any) {
-      // 42P07 = duplicate table, 42710 = duplicate object (index/constraint) — safe to skip on re-run
-      if (err?.code === "P2010" && /already exists/i.test(err?.meta?.message || err?.message || "")) {
-        schemaResults.push(`[${i + 1}] already existed, skipped`);
-      } else if (/already exists/i.test(String(err?.message || ""))) {
+      const message = err?.meta?.message || err?.message || String(err);
+      if (/already exists/i.test(message)) {
         schemaResults.push(`[${i + 1}] already existed, skipped`);
       } else {
-        return NextResponse.json(
-          { error: `Schema statement ${i + 1} failed: ${err?.message || err}`, schemaResults },
-          { status: 500 }
-        );
+        schemaResults.push(`[${i + 1}] FAILED: ${message}`);
       }
     }
   }
@@ -51,5 +50,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Seeding failed: ${err?.message || err}`, schemaResults }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, schemaResults });
+  const hasFailures = schemaResults.some((r) => r.includes("FAILED"));
+  return NextResponse.json({ ok: !hasFailures, schemaResults });
 }

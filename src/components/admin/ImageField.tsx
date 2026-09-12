@@ -2,7 +2,15 @@
 
 import { useRef, useState } from "react";
 
-export default function ImageField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+export default function ImageField({
+  value,
+  onChange,
+  endpoint = "/api/admin/upload",
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  endpoint?: string;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -13,7 +21,7 @@ export default function ImageField({ value, onChange }: { value: string; onChang
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const res = await fetch(endpoint, { method: "POST", body: fd });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "আপলোড ব্যর্থ হয়েছে");
       onChange(j.url);

@@ -9,6 +9,7 @@ const links = [
   { href: "/events", label: "ইভেন্ট" },
   { href: "/gallery", label: "গ্যালারি" },
   { href: "/blog", label: "ব্লগ" },
+  { href: "/members", label: "সদস্যবৃন্দ" },
   { href: "/contact", label: "যোগাযোগ" },
 ];
 

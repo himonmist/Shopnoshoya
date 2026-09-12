@@ -22,17 +22,26 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
+const TYP = "admin";
+
 export async function createSessionToken(adminId: string, email: string) {
-  return new SignJWT({ sub: adminId, email })
+  return new SignJWT({ sub: adminId, email, typ: TYP })
     .setProtectedHeader({ alg })
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(getSecretKey());
 }
 
+/** Verifies an admin session token. Rejects tokens missing the admin `typ`
+ *  claim — critically, this includes member session tokens, which are
+ *  signed with the same AUTH_SECRET. Without this check, a member's own
+ *  valid session token could be replayed as the admin cookie and reach
+ *  admin API routes that rely on middleware alone (see lib/crud.ts) with no
+ *  further identity check of their own. */
 export async function verifySessionToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, getSecretKey());
+    if (payload.typ !== TYP) return null;
     return payload as { sub: string; email: string };
   } catch {
     return null;

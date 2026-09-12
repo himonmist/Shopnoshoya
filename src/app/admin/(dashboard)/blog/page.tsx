@@ -7,7 +7,7 @@ export default function AdminBlogPage() {
     <EntityManager
       title="ব্লগ পরিচালনা"
       apiBase="/api/admin/blog"
-      columns={["শিরোনাম", "ট্যাগ", "ছবি", "প্রকাশিত?"]}
+      columns={["শিরোনাম", "লেখক", "ট্যাগ", "ছবি", "প্রকাশিত?"]}
       emptyItem={{
         title: "",
         slug: "",
@@ -15,6 +15,7 @@ export default function AdminBlogPage() {
         content: "",
         imageUrl: "",
         tag: "",
+        authorName: "",
         published: true,
       }}
       fields={[
@@ -24,6 +25,7 @@ export default function AdminBlogPage() {
         { key: "content", label: "পূর্ণ লেখা (অনুচ্ছেদের মাঝে ফাঁকা লাইন দিন)", type: "textarea", rows: 10 },
         { key: "imageUrl", label: "কভার ছবি", type: "image" },
         { key: "tag", label: "ট্যাগ" },
+        { key: "authorName", label: "লেখক" },
         { key: "published", label: "প্রকাশিত?", type: "checkbox" },
       ]}
     />

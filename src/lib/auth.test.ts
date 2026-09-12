@@ -54,4 +54,16 @@ describe("session tokens", () => {
     const { verifySessionToken } = await import("./auth");
     expect(await verifySessionToken("")).toBeNull();
   });
+
+  it("rejects a member session token even though both are signed with the same AUTH_SECRET", async () => {
+    // Regression test for a real privilege-escalation bug found via manual
+    // testing: the generic admin CRUD routes (lib/crud.ts) trust the
+    // middleware's admin-cookie check alone with no further identity lookup,
+    // so a member replaying their own valid token as the admin cookie must
+    // be rejected right here, not just at the member-token side.
+    const { verifySessionToken } = await import("./auth");
+    const { createMemberSessionToken } = await import("./memberAuth");
+    const memberToken = await createMemberSessionToken("member_123", "01700000000");
+    expect(await verifySessionToken(memberToken)).toBeNull();
+  });
 });

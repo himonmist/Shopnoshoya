@@ -1,20 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function MemberPortal({ orgName }: { orgName: string }) {
+  const router = useRouter();
   const [tab, setTab] = useState<"login" | "signup">("login");
-  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
-  const [errMsg, setErrMsg] = useState("");
+
+  const [loginStatus, setLoginStatus] = useState<"idle" | "sending" | "err">("idle");
+  const [loginError, setLoginError] = useState("");
+
+  const [signupStatus, setSignupStatus] = useState<"idle" | "sending" | "ok" | "err">("idle");
+  const [signupError, setSignupError] = useState("");
+
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoginStatus("sending");
+    setLoginError("");
+    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    try {
+      const res = await fetch("/api/member/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "লগইন ব্যর্থ হয়েছে");
+      router.push("/member/dashboard");
+      router.refresh();
+    } catch (err: any) {
+      setLoginError(err.message);
+      setLoginStatus("err");
+    }
+  }
 
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("sending");
+    setSignupStatus("sending");
+    setSignupError("");
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
     try {
-      const res = await fetch("/api/member-application", {
+      const res = await fetch("/api/member/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -23,11 +51,11 @@ export default function MemberPortal({ orgName }: { orgName: string }) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || "ত্রুটি হয়েছে");
       }
-      setStatus("ok");
+      setSignupStatus("ok");
       form.reset();
     } catch (err: any) {
-      setErrMsg(err.message || "ত্রুটি হয়েছে");
-      setStatus("err");
+      setSignupError(err.message || "ত্রুটি হয়েছে");
+      setSignupStatus("err");
     }
   }
 
@@ -58,22 +86,25 @@ export default function MemberPortal({ orgName }: { orgName: string }) {
 
       <div className="card" style={{ padding: 30 }}>
         {tab === "login" ? (
-          <div style={{ display: "grid", gap: 16 }}>
-            <div><label className="lbl">ফোন নম্বর</label><input className="input" placeholder="01XXXXXXXXX" /></div>
-            <div><label className="lbl">পাসওয়ার্ড</label><input className="input" type="password" placeholder="********" /></div>
-            <div style={{ textAlign: "right" }}><a href="#" style={{ fontSize: 13 }}>পাসওয়ার্ড ভুলে গেছেন?</a></div>
-            <button type="button" className="btn" disabled title="সদস্যপদ অনুমোদনের পর এই ফিচার চালু হবে">লগইন করুন</button>
-          </div>
+          <form onSubmit={handleLogin} style={{ display: "grid", gap: 16 }}>
+            <div><label className="lbl">ফোন নম্বর</label><input className="input" name="phone" placeholder="01XXXXXXXXX" required /></div>
+            <div><label className="lbl">পাসওয়ার্ড</label><input className="input" name="password" type="password" placeholder="********" required /></div>
+            <button type="submit" className="btn" disabled={loginStatus === "sending"}>
+              {loginStatus === "sending" ? "..." : "লগইন করুন"}
+            </button>
+            {loginStatus === "err" && <p className="status-msg err">{loginError}</p>}
+          </form>
         ) : (
           <form onSubmit={handleSignup} style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr 1fr" }}>
             <div style={{ gridColumn: "1 / -1" }}><label className="lbl">পূর্ণ নাম</label><input className="input" name="fullName" placeholder="আপনার নাম" required /></div>
             <div><label className="lbl">হোল্ডিং/ফ্ল্যাট নং</label><input className="input" name="holding" /></div>
             <div><label className="lbl">ফোন নম্বর</label><input className="input" name="phone" placeholder="01XXXXXXXXX" required /></div>
-            <button type="submit" className="btn" style={{ gridColumn: "1 / -1" }} disabled={status === "sending"}>
-              {status === "sending" ? "পাঠানো হচ্ছে..." : "সদস্যপদের জন্য আবেদন করুন"}
+            <div style={{ gridColumn: "1 / -1" }}><label className="lbl">পাসওয়ার্ড সেট করুন</label><input className="input" name="password" type="password" placeholder="কমপক্ষে ৬ অক্ষর" required minLength={6} /></div>
+            <button type="submit" className="btn" style={{ gridColumn: "1 / -1" }} disabled={signupStatus === "sending"}>
+              {signupStatus === "sending" ? "পাঠানো হচ্ছে..." : "সদস্যপদের জন্য আবেদন করুন"}
             </button>
-            {status === "ok" && <p className="status-msg ok" style={{ gridColumn: "1 / -1" }}>ধন্যবাদ! আপনার আবেদন গৃহীত হয়েছে।</p>}
-            {status === "err" && <p className="status-msg err" style={{ gridColumn: "1 / -1" }}>{errMsg}</p>}
+            {signupStatus === "ok" && <p className="status-msg ok" style={{ gridColumn: "1 / -1" }}>ধন্যবাদ! অ্যাডমিন অনুমোদনের পর আপনি লগইন করতে পারবেন।</p>}
+            {signupStatus === "err" && <p className="status-msg err" style={{ gridColumn: "1 / -1" }}>{signupError}</p>}
           </form>
         )}
       </div>

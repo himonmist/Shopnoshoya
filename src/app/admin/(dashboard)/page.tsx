@@ -18,7 +18,7 @@ export default async function AdminDashboardPage() {
     safeCount(() => prisma.blogPost.count()),
     safeCount(() => prisma.contactMessage.count()),
     safeCount(() => prisma.contactMessage.count({ where: { read: false } })),
-    safeCount(() => prisma.memberApplication.count({ where: { status: "pending" } })),
+    safeCount(() => prisma.member.count({ where: { status: "pending" } })),
   ]);
 
   const cards = [

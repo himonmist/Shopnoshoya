@@ -29,6 +29,7 @@ export const POST = withJsonErrors(async (req: NextRequest) => {
       content: body.content || "",
       imageUrl: body.imageUrl || "",
       tag: body.tag || "",
+      authorName: body.authorName || "",
       published: body.published ?? true,
       publishedAt: body.publishedAt ? new Date(body.publishedAt) : new Date(),
     },
