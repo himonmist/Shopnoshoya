@@ -29,17 +29,19 @@ export function makeListRoute(delegate: Delegate, orderBy: any = { order: "asc" 
 /** Builds standard update+delete route handlers for a Prisma model, keyed by [id]. */
 export function makeItemRoute(delegate: Delegate) {
   return {
-    PUT: withJsonErrors(async (req: NextRequest, { params }: { params: { id: string } }) => {
+    PUT: withJsonErrors(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+      const { id } = await params;
       const body = await req.json().catch(() => null);
       if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
       delete body.id;
       delete body.createdAt;
       delete body.updatedAt;
-      const item = await delegate.update({ where: { id: params.id }, data: body });
+      const item = await delegate.update({ where: { id }, data: body });
       return NextResponse.json(item);
     }),
-    DELETE: withJsonErrors(async (_req: NextRequest, { params }: { params: { id: string } }) => {
-      await delegate.delete({ where: { id: params.id } });
+    DELETE: withJsonErrors(async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+      const { id } = await params;
+      await delegate.delete({ where: { id } });
       return NextResponse.json({ ok: true });
     }),
   };

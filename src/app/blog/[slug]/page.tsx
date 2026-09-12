@@ -6,8 +6,9 @@ import { getSettings, getBlogPost } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const [s, post] = await Promise.all([getSettings(), getBlogPost(params.slug)]);
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const [s, post] = await Promise.all([getSettings(), getBlogPost(slug)]);
   if (!post) notFound();
 
   return (

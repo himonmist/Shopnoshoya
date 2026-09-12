@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import slugify from "slugify";
 import { withJsonErrors } from "@/lib/apiError";
 
-export const PUT = withJsonErrors(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PUT = withJsonErrors(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
@@ -19,14 +20,15 @@ export const PUT = withJsonErrors(async (req: NextRequest, { params }: { params:
   if (body.slug) {
     const slug = slugify(String(body.slug), { lower: true, strict: true });
     const existing = await prisma.blogPost.findUnique({ where: { slug } });
-    if (!existing || existing.id === params.id) data.slug = slug;
+    if (!existing || existing.id === id) data.slug = slug;
   }
 
-  const post = await prisma.blogPost.update({ where: { id: params.id }, data });
+  const post = await prisma.blogPost.update({ where: { id }, data });
   return NextResponse.json(post);
 });
 
-export const DELETE = withJsonErrors(async (_req: NextRequest, { params }: { params: { id: string } }) => {
-  await prisma.blogPost.delete({ where: { id: params.id } });
+export const DELETE = withJsonErrors(async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  await prisma.blogPost.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 });
