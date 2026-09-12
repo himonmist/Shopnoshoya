@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toPublicMember, formatBirthday, validateBirthday } from "./members";
+import { toPublicMember, formatBirthday, validateBirthday, buildMemberSearchWhere } from "./memberUtils";
 
 const fullMember = {
   id: "m1",
@@ -85,5 +85,37 @@ describe("validateBirthday", () => {
   it("rejects only one of the two being set", () => {
     expect(validateBirthday(15, null)).toBe(false);
     expect(validateBirthday(null, 3)).toBe(false);
+  });
+});
+
+describe("buildMemberSearchWhere", () => {
+  it("always scopes to approved members, even with an empty query", () => {
+    const where = buildMemberSearchWhere("");
+    expect(where.status).toBe("approved");
+    expect(where.OR).toBeUndefined();
+  });
+
+  it("scopes to approved members even when a query is given", () => {
+    const where = buildMemberSearchWhere("রহিম");
+    expect(where.status).toBe("approved");
+  });
+
+  it("searches name, phone, and building/flat (holding) with a query", () => {
+    const where = buildMemberSearchWhere("8B2");
+    expect(where.OR).toEqual([
+      { fullName: { contains: "8B2", mode: "insensitive" } },
+      { phone: { contains: "8B2" } },
+      { holding: { contains: "8B2", mode: "insensitive" } },
+    ]);
+  });
+
+  it("trims whitespace from the query", () => {
+    const where = buildMemberSearchWhere("  রহিম  ");
+    expect(where.OR?.[0]).toEqual({ fullName: { contains: "রহিম", mode: "insensitive" } });
+  });
+
+  it("treats a whitespace-only query the same as empty", () => {
+    const where = buildMemberSearchWhere("   ");
+    expect(where.OR).toBeUndefined();
   });
 });

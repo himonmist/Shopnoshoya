@@ -79,7 +79,7 @@ export default function AdminMessagesPage() {
       <h3 className="disp" style={{ fontSize: 16, marginTop: 30 }}>সদস্যপদের আবেদন</h3>
       <div className="admin-card" style={{ overflowX: "auto" }}>
         <table className="admin-table">
-          <thead><tr><th>নাম</th><th>হোল্ডিং/ফ্ল্যাট</th><th>ফোন</th><th>তারিখ</th><th>অবস্থা</th><th></th></tr></thead>
+          <thead><tr><th>নাম</th><th>বিল্ডিং/ফ্ল্যাট</th><th>ফোন</th><th>তারিখ</th><th>অবস্থা</th><th></th></tr></thead>
           <tbody>
             {members.map((m) => (
               <tr key={m.id}>

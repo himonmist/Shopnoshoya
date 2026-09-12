@@ -97,7 +97,7 @@ export default function MemberPortal({ orgName }: { orgName: string }) {
         ) : (
           <form onSubmit={handleSignup} style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr 1fr" }}>
             <div style={{ gridColumn: "1 / -1" }}><label className="lbl">পূর্ণ নাম</label><input className="input" name="fullName" placeholder="আপনার নাম" required /></div>
-            <div><label className="lbl">হোল্ডিং/ফ্ল্যাট নং</label><input className="input" name="holding" /></div>
+            <div><label className="lbl">বিল্ডিং/ফ্ল্যাট নং</label><input className="input" name="holding" /></div>
             <div><label className="lbl">ফোন নম্বর</label><input className="input" name="phone" placeholder="01XXXXXXXXX" required /></div>
             <div style={{ gridColumn: "1 / -1" }}><label className="lbl">পাসওয়ার্ড সেট করুন</label><input className="input" name="password" type="password" placeholder="কমপক্ষে ৬ অক্ষর" required minLength={6} /></div>
             <button type="submit" className="btn" style={{ gridColumn: "1 / -1" }} disabled={signupStatus === "sending"}>

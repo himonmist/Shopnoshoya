@@ -146,7 +146,7 @@ export default function MemberDashboard({ initialProfile }: { initialProfile: Pr
           </div>
           <div className="form-row-2">
             <div><label className="lbl">ইমেইল</label><input className="input" type="email" value={profile.email} onChange={(e) => updateField("email", e.target.value)} /></div>
-            <div><label className="lbl">হোল্ডিং/ফ্ল্যাট নং</label><input className="input" value={profile.holding} onChange={(e) => updateField("holding", e.target.value)} /></div>
+            <div><label className="lbl">বিল্ডিং/ফ্ল্যাট নং</label><input className="input" value={profile.holding} onChange={(e) => updateField("holding", e.target.value)} /></div>
           </div>
           <div className="form-row-2">
             <div><label className="lbl">পেশা</label><input className="input" value={profile.profession} onChange={(e) => updateField("profession", e.target.value)} /></div>
