@@ -20,6 +20,7 @@ type Profile = {
   aboutYou: string;
   birthDay: number | null;
   birthMonth: number | null;
+  birthYear: number | null;
   motiveWord: string;
   photoUrl: string;
 };
@@ -167,6 +168,18 @@ export default function MemberDashboard({ initialProfile }: { initialProfile: Pr
                 {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
               </select>
             </div>
+          </div>
+          <div>
+            <label className="lbl">জন্মসাল (শুধু নিজেদের রেকর্ডের জন্য, ওয়েবসাইটে দেখানো হবে না)</label>
+            <input
+              className="input"
+              type="number"
+              min={1900}
+              max={new Date().getFullYear()}
+              value={profile.birthYear ?? ""}
+              onChange={(e) => updateField("birthYear", e.target.value ? Number(e.target.value) : null)}
+              style={{ maxWidth: 160 }}
+            />
           </div>
           <div><label className="lbl">নিজের সম্পর্কে</label><textarea className="input" rows={3} value={profile.aboutYou} onChange={(e) => updateField("aboutYou", e.target.value)} /></div>
           <div><label className="lbl">স্বপ্নছোঁয়ার জন্য অনুপ্রেরণার কথা</label><input className="input" value={profile.motiveWord} onChange={(e) => updateField("motiveWord", e.target.value)} /></div>

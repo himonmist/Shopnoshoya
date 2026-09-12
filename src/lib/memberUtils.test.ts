@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toPublicMember, formatBirthday, validateBirthday, buildMemberSearchWhere } from "./memberUtils";
+import { toPublicMember, formatBirthday, validateBirthday, validateBirthYear, buildMemberSearchWhere, normalizeHolding } from "./memberUtils";
 
 const fullMember = {
   id: "m1",
@@ -88,6 +88,52 @@ describe("validateBirthday", () => {
   });
 });
 
+describe("validateBirthYear", () => {
+  const currentYear = new Date().getFullYear();
+
+  it("allows an empty year (optional field)", () => {
+    expect(validateBirthYear(null)).toBe(true);
+    expect(validateBirthYear(undefined)).toBe(true);
+  });
+
+  it("accepts a plausible birth year", () => {
+    expect(validateBirthYear(1990)).toBe(true);
+    expect(validateBirthYear(1900)).toBe(true);
+    expect(validateBirthYear(currentYear)).toBe(true);
+  });
+
+  it("rejects a year in the future or before 1900", () => {
+    expect(validateBirthYear(currentYear + 1)).toBe(false);
+    expect(validateBirthYear(1899)).toBe(false);
+  });
+
+  it("rejects a non-integer", () => {
+    expect(validateBirthYear(1990.5)).toBe(false);
+  });
+});
+
+describe("normalizeHolding", () => {
+  it("strips slashes, spaces, and dashes", () => {
+    expect(normalizeHolding("8/B2")).toBe("8b2");
+    expect(normalizeHolding("06/E10")).toBe("06e10");
+    expect(normalizeHolding("B - 12")).toBe("b12");
+  });
+
+  it("lowercases the result", () => {
+    expect(normalizeHolding("8B2")).toBe("8b2");
+  });
+
+  it("returns an empty string for empty input", () => {
+    expect(normalizeHolding("")).toBe("");
+    expect(normalizeHolding("   ")).toBe("");
+  });
+
+  it("makes differently-formatted equivalent addresses match", () => {
+    expect(normalizeHolding("8/B2")).toBe(normalizeHolding("8 B 2"));
+    expect(normalizeHolding("8/B2")).toBe(normalizeHolding("8-B-2"));
+  });
+});
+
 describe("buildMemberSearchWhere", () => {
   it("always scopes to approved members, even with an empty query", () => {
     const where = buildMemberSearchWhere("");
@@ -100,13 +146,20 @@ describe("buildMemberSearchWhere", () => {
     expect(where.status).toBe("approved");
   });
 
-  it("searches name, phone, and building/flat (holding) with a query", () => {
-    const where = buildMemberSearchWhere("8B2");
+  it("searches name and phone as typed, and building/flat via the normalized holdingKey", () => {
+    const where = buildMemberSearchWhere("8/B2");
     expect(where.OR).toEqual([
-      { fullName: { contains: "8B2", mode: "insensitive" } },
-      { phone: { contains: "8B2" } },
-      { holding: { contains: "8B2", mode: "insensitive" } },
+      { fullName: { contains: "8/B2", mode: "insensitive" } },
+      { phone: { contains: "8/B2" } },
+      { holdingKey: { contains: "8b2" } },
     ]);
+  });
+
+  it("normalizes the building/flat query so formatting differences don't block a match", () => {
+    // Searching "8B2" (no separators) must still be able to match a stored
+    // "8/B2" via holdingKey, since both normalize to "8b2".
+    const where = buildMemberSearchWhere("8B2");
+    expect(where.OR?.[2]).toEqual({ holdingKey: { contains: "8b2" } });
   });
 
   it("trims whitespace from the query", () => {

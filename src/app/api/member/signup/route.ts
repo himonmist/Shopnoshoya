@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { normalizeHolding } from "@/lib/memberUtils";
 import { withJsonErrors } from "@/lib/apiError";
 
 export const POST = withJsonErrors(async (req: NextRequest) => {
@@ -26,7 +27,7 @@ export const POST = withJsonErrors(async (req: NextRequest) => {
 
   const passwordHash = await hashPassword(password);
   await prisma.member.create({
-    data: { fullName, holding, phone, passwordHash, status: "pending" },
+    data: { fullName, holding, holdingKey: normalizeHolding(holding), phone, passwordHash, status: "pending" },
   });
 
   return NextResponse.json({ ok: true });

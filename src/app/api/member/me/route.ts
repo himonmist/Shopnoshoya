@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentMember } from "@/lib/memberAuth";
-import { validateBirthday } from "@/lib/members";
+import { validateBirthday, validateBirthYear, normalizeHolding } from "@/lib/memberUtils";
 import { withJsonErrors } from "@/lib/apiError";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +32,12 @@ export const PUT = withJsonErrors(async (req: NextRequest) => {
 
   const birthDay = body.birthDay === "" || body.birthDay === null || body.birthDay === undefined ? null : Number(body.birthDay);
   const birthMonth = body.birthMonth === "" || body.birthMonth === null || body.birthMonth === undefined ? null : Number(body.birthMonth);
+  const birthYear = body.birthYear === "" || body.birthYear === null || body.birthYear === undefined ? null : Number(body.birthYear);
   if (!validateBirthday(birthDay, birthMonth)) {
     return NextResponse.json({ error: "জন্মদিন সঠিক নয় (দিন ১-৩১, মাস ১-১২, দুটোই দিন অথবা দুটোই ফাঁকা)" }, { status: 400 });
+  }
+  if (!validateBirthYear(birthYear)) {
+    return NextResponse.json({ error: "জন্মসাল সঠিক নয়" }, { status: 400 });
   }
 
   if (phone !== member.phone) {
@@ -43,13 +47,16 @@ export const PUT = withJsonErrors(async (req: NextRequest) => {
     }
   }
 
+  const holding = String(body.holding ?? member.holding);
+
   const updated = await prisma.member.update({
     where: { id: member.id },
     data: {
       fullName,
       phone,
       email: String(body.email ?? member.email),
-      holding: String(body.holding ?? member.holding),
+      holding,
+      holdingKey: normalizeHolding(holding),
       profession: String(body.profession ?? member.profession),
       hobby: String(body.hobby ?? member.hobby),
       aboutYou: String(body.aboutYou ?? member.aboutYou),
@@ -57,6 +64,7 @@ export const PUT = withJsonErrors(async (req: NextRequest) => {
       photoUrl: String(body.photoUrl ?? member.photoUrl),
       birthDay,
       birthMonth,
+      birthYear,
     },
   });
 

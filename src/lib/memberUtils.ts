@@ -35,6 +35,17 @@ export function validateBirthday(day: number | null | undefined, month: number |
   return day! <= DAYS_IN_MONTH[month! - 1];
 }
 
+/** Validates an optional birth year. Captured during profile entry for the
+ *  member's/admin's own record-keeping only — the public site and the
+ *  member directory only ever display day+month (formatBirthday), never
+ *  the year. */
+export function validateBirthYear(year: number | null | undefined) {
+  if (year === null || year === undefined) return true;
+  if (!Number.isInteger(year)) return false;
+  const currentYear = new Date().getFullYear();
+  return year >= 1900 && year <= currentYear;
+}
+
 export type PublicMember = {
   id: string;
   fullName: string;
@@ -81,13 +92,25 @@ export function toPublicMember(member: {
   };
 }
 
+/** Strips everything except ASCII letters and digits and lowercases the
+ *  result, so differently-formatted building/flat entries ("8/B2", "8 B 2",
+ *  "8-B-2") all normalize to the same search key ("8b2"). Stored alongside
+ *  `holding` as `holdingKey` (set at signup and on profile update) and used
+ *  for matching instead of the raw, free-form `holding` text.
+ *  IMPORTANT: kept in exact lockstep with the SQL backfill in schemaSql.ts
+ *  (`lower(regexp_replace(holding, '[^a-zA-Z0-9]', '', 'g'))`) — change
+ *  both together, or search results will disagree with newly-saved values. */
+export function normalizeHolding(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 /** Builds the Prisma `where` clause for the member-only directory search —
  *  a pure function so the "always scoped to approved members, never leaks
  *  pending/rejected applicants" guarantee is unit-testable without a
- *  database. Matches name, phone, or building/flat (holding) as a
- *  case-insensitive substring (phone is matched case-sensitively since
- *  digits have no case, which also sidesteps Postgres's `mode: insensitive`
- *  requiring a citext/ILIKE index consideration for numeric-only columns). */
+ *  database. Matches name and phone as typed, and building/flat via the
+ *  normalized holdingKey so formatting differences (slashes, spaces,
+ *  dashes) never block a match (phone is matched case-sensitively since
+ *  digits have no case). */
 export function buildMemberSearchWhere(query: string) {
   const q = query.trim();
   const where: { status: "approved"; OR?: any[] } = { status: "approved" };
@@ -95,7 +118,7 @@ export function buildMemberSearchWhere(query: string) {
     where.OR = [
       { fullName: { contains: q, mode: "insensitive" } },
       { phone: { contains: q } },
-      { holding: { contains: q, mode: "insensitive" } },
+      { holdingKey: { contains: normalizeHolding(q) } },
     ];
   }
   return where;

@@ -160,23 +160,32 @@ export default function MembersDirectory() {
           <div
             onClick={(e) => e.stopPropagation()}
             className="card"
-            style={{ maxWidth: 560, width: "100%", position: "relative", border: "1px solid var(--seam)" }}
+            style={{
+              maxWidth: 560,
+              width: "100%",
+              maxHeight: "85vh",
+              border: "1px solid var(--seam)",
+              padding: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
           >
-            <button
-              onClick={() => setSelected(null)}
-              aria-label="বন্ধ করুন"
-              style={{ position: "absolute", top: 14, right: 14, width: 32, height: 32, borderRadius: 999, background: "var(--orange)", color: "var(--bg)", border: "none", fontWeight: 800, fontSize: 16, cursor: "pointer" }}
-            >
-              ×
-            </button>
-            <div style={{ display: "flex", gap: 20, alignItems: "center", marginBottom: 20 }}>
-              <Avatar member={selected} size={96} />
-              <div>
-                <div className="disp" style={{ fontSize: 22, fontWeight: 800 }}>{selected.fullName}</div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center", padding: "24px 26px 20px", flex: "none", borderBottom: "1px solid var(--seam)" }}>
+              <Avatar member={selected} size={72} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="disp" style={{ fontSize: 20, fontWeight: 800 }}>{selected.fullName}</div>
                 {selected.profession && <div className="cat" style={{ marginTop: 4 }}>{selected.profession}</div>}
               </div>
+              <button
+                onClick={() => setSelected(null)}
+                aria-label="বন্ধ করুন"
+                style={{ flex: "none", width: 32, height: 32, borderRadius: 999, background: "var(--orange)", color: "var(--bg)", border: "none", fontWeight: 800, fontSize: 16, cursor: "pointer" }}
+              >
+                ×
+              </button>
             </div>
-            <div style={{ display: "grid", gap: 2, background: "var(--seam)" }}>
+            <div style={{ display: "grid", gap: 2, background: "var(--seam)", overflowY: "auto" }}>
               <DetailRow label="মোবাইল" value={selected.phone} />
               {selected.email && <DetailRow label="ইমেইল" value={selected.email} />}
               <DetailRow label="বিল্ডিং/ফ্ল্যাট" value={selected.holding} />
