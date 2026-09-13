@@ -104,6 +104,38 @@ export function normalizeHolding(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+export const RESET_MAX_ATTEMPTS = 5;
+export const RESET_LOCKOUT_MINUTES = 15;
+
+/** Whether a forgot-password identity check is currently locked out. There
+ *  is no SMS/email OTP service configured, so identity for a password reset
+ *  is verified with phone + building/flat alone — inherently lower-entropy
+ *  than a real OTP, which is exactly why this lockout exists: without it,
+ *  an attacker who knows (or guesses) a member's phone number could brute
+ *  force building/flat combinations. */
+export function isResetLocked(lockedUntil: Date | null | undefined, now: Date = new Date()) {
+  return !!lockedUntil && lockedUntil.getTime() > now.getTime();
+}
+
+/** Computes the next (resetAttempts, resetLockedUntil) state after one
+ *  failed identity-verification attempt. Locks out for RESET_LOCKOUT_MINUTES
+ *  once RESET_MAX_ATTEMPTS is reached, and resets the counter to 0 at the
+ *  same time so the member gets a fresh set of attempts once the lock
+ *  expires. */
+export function nextFailedAttemptState(currentAttempts: number, now: Date = new Date()) {
+  const attempts = currentAttempts + 1;
+  if (attempts >= RESET_MAX_ATTEMPTS) {
+    return { resetAttempts: 0, resetLockedUntil: new Date(now.getTime() + RESET_LOCKOUT_MINUTES * 60 * 1000) };
+  }
+  return { resetAttempts: attempts, resetLockedUntil: null as Date | null };
+}
+
+/** Clears the attempt counter and any lockout after a successful identity
+ *  verification (or a successful password reset). */
+export function resetAttemptStateAfterSuccess() {
+  return { resetAttempts: 0, resetLockedUntil: null as Date | null };
+}
+
 /** Builds the Prisma `where` clause for the member-only directory search —
  *  a pure function so the "always scoped to approved members, never leaks
  *  pending/rejected applicants" guarantee is unit-testable without a

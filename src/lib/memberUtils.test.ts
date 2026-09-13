@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { toPublicMember, formatBirthday, validateBirthday, validateBirthYear, buildMemberSearchWhere, normalizeHolding } from "./memberUtils";
+import {
+  toPublicMember,
+  formatBirthday,
+  validateBirthday,
+  validateBirthYear,
+  buildMemberSearchWhere,
+  normalizeHolding,
+  isResetLocked,
+  nextFailedAttemptState,
+  resetAttemptStateAfterSuccess,
+  RESET_MAX_ATTEMPTS,
+} from "./memberUtils";
 
 const fullMember = {
   id: "m1",
@@ -170,5 +181,55 @@ describe("buildMemberSearchWhere", () => {
   it("treats a whitespace-only query the same as empty", () => {
     const where = buildMemberSearchWhere("   ");
     expect(where.OR).toBeUndefined();
+  });
+});
+
+describe("forgot-password lockout state machine", () => {
+  const now = new Date("2026-01-01T12:00:00Z");
+
+  describe("isResetLocked", () => {
+    it("is not locked when there's no lockedUntil", () => {
+      expect(isResetLocked(null, now)).toBe(false);
+      expect(isResetLocked(undefined, now)).toBe(false);
+    });
+
+    it("is not locked once the lockedUntil time has passed", () => {
+      const past = new Date(now.getTime() - 1000);
+      expect(isResetLocked(past, now)).toBe(false);
+    });
+
+    it("is locked while lockedUntil is still in the future", () => {
+      const future = new Date(now.getTime() + 1000);
+      expect(isResetLocked(future, now)).toBe(true);
+    });
+  });
+
+  describe("nextFailedAttemptState", () => {
+    it("increments attempts without locking, below the max", () => {
+      const state = nextFailedAttemptState(0, now);
+      expect(state.resetAttempts).toBe(1);
+      expect(state.resetLockedUntil).toBeNull();
+    });
+
+    it("keeps incrementing right up to one below the max", () => {
+      const state = nextFailedAttemptState(RESET_MAX_ATTEMPTS - 2, now);
+      expect(state.resetAttempts).toBe(RESET_MAX_ATTEMPTS - 1);
+      expect(state.resetLockedUntil).toBeNull();
+    });
+
+    it("locks out and resets the counter once the max is reached", () => {
+      const state = nextFailedAttemptState(RESET_MAX_ATTEMPTS - 1, now);
+      expect(state.resetAttempts).toBe(0);
+      expect(state.resetLockedUntil).not.toBeNull();
+      expect(state.resetLockedUntil!.getTime()).toBeGreaterThan(now.getTime());
+    });
+  });
+
+  describe("resetAttemptStateAfterSuccess", () => {
+    it("clears both the attempt counter and any lockout", () => {
+      const state = resetAttemptStateAfterSuccess();
+      expect(state.resetAttempts).toBe(0);
+      expect(state.resetLockedUntil).toBeNull();
+    });
   });
 });

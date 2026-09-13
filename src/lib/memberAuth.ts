@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { createHash } from "crypto";
 import { prisma } from "./prisma";
 
 const COOKIE_NAME = "shopnoshoya_member_session";
@@ -66,3 +67,41 @@ export async function getCurrentMember() {
 }
 
 export const MEMBER_SESSION_COOKIE_NAME = COOKIE_NAME;
+
+const RESET_PROOF_TYP = "member-reset-proof";
+
+/** An opaque fingerprint of a password hash (a hash of the hash, not the
+ *  hash itself) — binds a reset-proof token to the password state it was
+ *  issued against, so using the token to reset the password changes the
+ *  fingerprint and makes that same token fail if replayed. This is what
+ *  makes the token effectively single-use without needing any extra
+ *  server-side revocation storage: a plain JWT has no natural way to be
+ *  "used up" on its own. */
+export function passwordFingerprint(passwordHash: string) {
+  return createHash("sha256").update(passwordHash).digest("hex").slice(0, 16);
+}
+
+/** Short-lived proof that a member passed the forgot-password identity
+ *  check (phone + building/flat). Deliberately a distinct `typ` from both
+ *  the member and admin session tokens — this token must never be usable
+ *  as a session, only as a one-time credential for the immediate next
+ *  "set new password" request. Carries a fingerprint of the password hash
+ *  at issue-time so the reset route can reject a replayed token (see
+ *  passwordFingerprint above). */
+export async function createResetProofToken(memberId: string, currentPasswordHash: string) {
+  return new SignJWT({ sub: memberId, typ: RESET_PROOF_TYP, pwv: passwordFingerprint(currentPasswordHash) })
+    .setProtectedHeader({ alg })
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .sign(getSecretKey());
+}
+
+export async function verifyResetProofToken(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, getSecretKey());
+    if (payload.typ !== RESET_PROOF_TYP) return null;
+    return payload as { sub: string; typ: string; pwv: string };
+  } catch {
+    return null;
+  }
+}

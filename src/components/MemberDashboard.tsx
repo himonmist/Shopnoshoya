@@ -42,6 +42,10 @@ export default function MemberDashboard({ initialProfile }: { initialProfile: Pr
   const [draftStatus, setDraftStatus] = useState<"idle" | "saving" | "err">("idle");
   const [draftError, setDraftError] = useState("");
 
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "ok" | "err">("idle");
+  const [pwError, setPwError] = useState("");
+
   async function loadPosts() {
     setPostsLoading(true);
     const res = await fetch("/api/member/blog");
@@ -124,6 +128,32 @@ export default function MemberDashboard({ initialProfile }: { initialProfile: Pr
     router.refresh();
   }
 
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError("");
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError("নতুন পাসওয়ার্ড দুটি মিলছে না");
+      setPwStatus("err");
+      return;
+    }
+    setPwStatus("saving");
+    try {
+      const res = await fetch("/api/member/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "পরিবর্তন ব্যর্থ হয়েছে");
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPwStatus("ok");
+      setTimeout(() => setPwStatus("idle"), 2500);
+    } catch (err: any) {
+      setPwError(err.message);
+      setPwStatus("err");
+    }
+  }
+
   return (
     <section className="container" style={{ padding: "50px 40px 80px", maxWidth: 900 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
@@ -188,6 +218,49 @@ export default function MemberDashboard({ initialProfile }: { initialProfile: Pr
           </button>
           {saveStatus === "ok" && <p className="status-msg ok">সফলভাবে সংরক্ষিত হয়েছে।</p>}
           {saveStatus === "err" && <p className="status-msg err">{saveError}</p>}
+        </form>
+      </div>
+
+      <div className="admin-card" style={{ marginTop: 24 }}>
+        <h3 className="disp" style={{ marginTop: 0 }}>পাসওয়ার্ড পরিবর্তন করুন</h3>
+        <form onSubmit={handleChangePassword} className="form-grid" style={{ maxWidth: 360 }}>
+          <div>
+            <label className="lbl">বর্তমান পাসওয়ার্ড</label>
+            <input
+              className="input"
+              type="password"
+              value={pwForm.currentPassword}
+              onChange={(e) => setPwForm((f) => ({ ...f, currentPassword: e.target.value }))}
+              required
+            />
+          </div>
+          <div>
+            <label className="lbl">নতুন পাসওয়ার্ড</label>
+            <input
+              className="input"
+              type="password"
+              minLength={6}
+              value={pwForm.newPassword}
+              onChange={(e) => setPwForm((f) => ({ ...f, newPassword: e.target.value }))}
+              required
+            />
+          </div>
+          <div>
+            <label className="lbl">নতুন পাসওয়ার্ড আবার লিখুন</label>
+            <input
+              className="input"
+              type="password"
+              minLength={6}
+              value={pwForm.confirmPassword}
+              onChange={(e) => setPwForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+              required
+            />
+          </div>
+          <button type="submit" className="pill-btn primary" disabled={pwStatus === "saving"}>
+            {pwStatus === "saving" ? "পরিবর্তন হচ্ছে..." : "পাসওয়ার্ড পরিবর্তন করুন"}
+          </button>
+          {pwStatus === "ok" && <p className="status-msg ok">পাসওয়ার্ড পরিবর্তিত হয়েছে।</p>}
+          {pwStatus === "err" && <p className="status-msg err">{pwError}</p>}
         </form>
       </div>
 

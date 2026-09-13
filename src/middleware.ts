@@ -19,7 +19,12 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/member/") || pathname.startsWith("/api/member/")) {
-    const isPublicMemberRoute = pathname === "/api/member/login" || pathname === "/api/member/signup" || pathname === "/api/member/logout";
+    const isPublicMemberRoute =
+      pathname === "/api/member/login" ||
+      pathname === "/api/member/signup" ||
+      pathname === "/api/member/logout" ||
+      pathname === "/api/member/forgot-password/verify" ||
+      pathname === "/api/member/forgot-password/reset";
     if (isPublicMemberRoute) return NextResponse.next();
 
     const token = req.cookies.get(MEMBER_COOKIE_NAME)?.value;

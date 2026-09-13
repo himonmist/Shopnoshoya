@@ -130,24 +130,26 @@ model ContactMessage {
 }
 
 model Member {
-  id           String   @id @default(cuid())
-  fullName     String
-  holding      String   @default("") // building / flat no., as typed by the member
-  holdingKey   String   @default("") // normalizeHolding(holding) -- used for search, kept in sync on every write
-  phone        String   @unique
-  passwordHash String   @default("")
-  email        String   @default("")
-  profession   String   @default("")
-  hobby        String   @default("")
-  aboutYou     String   @default("")
-  birthDay     Int? // 1-31 -- shown publicly (day+month only)
-  birthMonth   Int? // 1-12 -- shown publicly (day+month only)
-  birthYear    Int? // captured for internal record-keeping only; never displayed publicly
-  motiveWord   String   @default("")
-  photoUrl     String   @default("")
-  status       String   @default("pending") // pending | approved | rejected
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String    @id @default(cuid())
+  fullName         String
+  holding          String    @default("") // building / flat no., as typed by the member
+  holdingKey       String    @default("") // normalizeHolding(holding) -- used for search, kept in sync on every write
+  phone            String    @unique
+  passwordHash     String    @default("")
+  email            String    @default("")
+  profession       String    @default("")
+  hobby            String    @default("")
+  aboutYou         String    @default("")
+  birthDay         Int? // 1-31 -- shown publicly (day+month only)
+  birthMonth       Int? // 1-12 -- shown publicly (day+month only)
+  birthYear        Int? // captured for internal record-keeping only; never displayed publicly
+  motiveWord       String    @default("")
+  photoUrl         String    @default("")
+  status           String    @default("pending") // pending | approved | rejected
+  resetAttempts    Int       @default(0) // failed forgot-password identity checks; see memberUtils.ts lockout logic
+  resetLockedUntil DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@map("MemberApplication")
 }
